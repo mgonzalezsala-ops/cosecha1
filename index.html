@@ -463,6 +463,10 @@
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Exportar CSV
     </button>
+    <button class="btn btn-danger" onclick="limpiarHistorial()" style="margin-top:8px">
+      <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+      Limpiar historial local
+    </button>
   </div>
 </div>
 
@@ -529,7 +533,7 @@
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycby66js0chz3v9GM7714aUl3H5WixpEfZa4wdCdLVk0KX20h_UrpEipKTgUb05qbEQtvCg/exec';
 
 let workers = JSON.parse(localStorage.getItem('cosecha_workers') || '[]');
-let registros = [];
+let registros = JSON.parse(localStorage.getItem('cosecha_registros') || '[]');
 let workerActual = null;
 let sheetsURL = localStorage.getItem('cosecha_sheets_url') || SHEETS_URL;
 let sheetsHoja = localStorage.getItem('cosecha_sheets_hoja') || 'Hoja1';
@@ -544,6 +548,10 @@ renderAll();
 
 function guardarWorkers() {
   localStorage.setItem('cosecha_workers', JSON.stringify(workers));
+}
+
+function guardarRegistros() {
+  localStorage.setItem('cosecha_registros', JSON.stringify(registros));
 }
 
 function goScreen(name) {
@@ -656,6 +664,7 @@ async function guardarCarga() {
     hoja: sheetsHoja
   };
   registros.unshift(registro);
+  guardarRegistros();
 
   // Enviar a Sheets
   if (sheetsURL) {
@@ -791,6 +800,7 @@ async function eliminarRegistro(i) {
   if (!confirm('¿Eliminar esta carga?')) return;
   const r = registros[i];
   registros.splice(i, 1);
+  guardarRegistros();
   renderRegistros();
   if (sheetsURL) {
     try {
@@ -835,6 +845,7 @@ async function confirmarEdicion() {
   registros[editIndex] = { ...original, jaulas: parseInt(jaulas), variedad, cuadro, obs };
 
   document.getElementById('edit-overlay').classList.remove('open');
+  guardarRegistros();
   renderRegistros();
 
   if (sheetsURL) {
@@ -873,6 +884,13 @@ function exportarCSV() {
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
   a.download = 'cosecha_' + new Date().toISOString().slice(0,10) + '.csv';
   a.click();
+}
+
+function limpiarHistorial() {
+  if (!confirm('¿Limpiar todo el historial local? Los datos en Google Sheets no se borran.')) return;
+  registros = [];
+  guardarRegistros();
+  renderRegistros();
 }
 
 function iniciales(nombre) {
