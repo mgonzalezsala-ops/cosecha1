@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Cosecha</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #1a7a4a;
+    --green-light: #e8f5ee;
+    --green-mid: #5DCAA5;
+    --amber: #c47a1a;
+    --amber-light: #fef3e2;
+    --red: #c0392b;
+    --red-light: #fdecea;
+    --gray-0: #f9f8f6;
+    --gray-1: #f0ede8;
+    --gray-2: #ddd9d2;
+    --gray-3: #b0aa9f;
+    --gray-4: #6b6560;
+    --gray-5: #2c2a27;
+    --white: #ffffff;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--gray-0);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--gray-5);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app {
+    max-width: 430px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--gray-0);
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--green);
+    padding: 16px 20px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .header-icon {
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .header-icon svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .header-title { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: -0.2px; }
+  .header-sub { font-size: 12px; color: rgba(255,255,255,0.65); margin-top: 1px; }
+
+  /* NAV */
+  .nav {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-2);
+    position: sticky;
+    top: 68px;
+    z-index: 9;
+  }
+  .nav-btn {
+    padding: 10px 4px 8px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-size: 11px; font-weight: 500; color: var(--gray-3);
+    background: none; border: none; cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s;
+  }
+  .nav-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-btn.active { color: var(--green); border-bottom-color: var(--green); }
+
+  /* SCREENS */
+  .screen { display: none; padding: 16px; flex: 1; }
+  .screen.active { display: block; }
+
+  /* TYPOGRAPHY */
+  .screen-title { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; color: var(--gray-5); margin-bottom: 4px; }
+  .screen-sub { font-size: 13px; color: var(--gray-4); margin-bottom: 20px; }
+
+  /* CARDS */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--gray-2);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  /* FORMS */
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label { display: block; font-size: 12px; font-weight: 500; color: var(--gray-4); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 11px 14px;
+    border: 1px solid var(--gray-2); border-radius: var(--radius-sm);
+    font-size: 15px; font-family: 'DM Sans', sans-serif; color: var(--gray-5);
+    background: var(--gray-0);
+    appearance: none; -webkit-appearance: none;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--green); background: var(--white); }
+  .field textarea { height: 72px; resize: none; }
+  .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6560' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px; }
+
+  /* BUTTONS */
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 13px 16px;
+    border-radius: var(--radius-sm); border: none;
+    font-size: 15px; font-weight: 600; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: opacity 0.15s, transform 0.1s;
+    margin-top: 10px;
+  }
+  .btn:active { transform: scale(0.98); opacity: 0.9; }
+  .btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .btn-primary { background: var(--green); color: #fff; }
+  .btn-ghost { background: var(--gray-1); color: var(--gray-5); }
+  .btn-danger { background: var(--red-light); color: var(--red); }
+  .btn-sm { padding: 8px 14px; font-size: 13px; width: auto; margin-top: 0; }
+
+  /* SCAN BOX */
+  .scan-area {
+    border: 2px dashed var(--gray-2);
+    border-radius: var(--radius);
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--white);
+    margin-bottom: 12px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .scan-area:active { border-color: var(--green); background: var(--green-light); }
+  .scan-area .scan-icon {
+    width: 56px; height: 56px;
+    background: var(--green-light);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 12px;
+  }
+  .scan-area .scan-icon svg { width: 26px; height: 26px; stroke: var(--green); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .scan-area p { font-size: 15px; font-weight: 500; color: var(--gray-5); margin-bottom: 4px; }
+  .scan-area span { font-size: 12px; color: var(--gray-3); }
+
+  /* BANNER */
+  .banner {
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px;
+  }
+  .banner svg { width: 20px; height: 20px; flex-shrink: 0; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .banner-green { background: var(--green-light); }
+  .banner-green svg { stroke: var(--green); }
+  .banner-green span { color: var(--green); font-size: 13px; font-weight: 500; }
+  .banner-blue { background: #e8f0fe; }
+  .banner-blue svg { stroke: #1a56b0; }
+  .banner-blue span { color: #1a56b0; font-size: 13px; }
+
+  /* SUCCESS */
+  .success-screen { text-align: center; padding: 32px 16px; }
+  .success-circle {
+    width: 72px; height: 72px;
+    background: var(--green-light);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+  }
+  .success-circle svg { width: 32px; height: 32px; stroke: var(--green); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .success-screen h2 { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+  .success-screen p { font-size: 14px; color: var(--gray-4); margin-bottom: 24px; }
+  .pill { display: inline-block; background: var(--green-light); color: var(--green); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; margin: 3px; }
+
+  /* WORKER ROW */
+  .worker-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--gray-1);
+  }
+  .worker-row:last-child { border-bottom: none; }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--green-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600; color: var(--green);
+    flex-shrink: 0;
+    font-family: 'DM Mono', monospace;
+  }
+  .worker-info { flex: 1; margin-left: 10px; }
+  .worker-name { font-size: 14px; font-weight: 500; color: var(--gray-5); }
+  .worker-id { font-size: 12px; color: var(--gray-3); font-family: 'DM Mono', monospace; }
+  .icon-btn {
+    width: 32px; height: 32px;
+    background: var(--gray-1); border: none; border-radius: 8px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .icon-btn:active { background: var(--gray-2); }
+  .icon-btn svg { width: 15px; height: 15px; stroke: var(--gray-4); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* QR */
+  .qr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .qr-card { background: var(--white); border: 1px solid var(--gray-2); border-radius: var(--radius-sm); padding: 12px; text-align: center; }
+  .qr-card canvas, .qr-card img { width: 100% !important; height: auto !important; max-width: 130px; display: block; margin: 0 auto; }
+  .qr-name { font-size: 12px; font-weight: 600; color: var(--gray-5); margin-top: 8px; line-height: 1.3; }
+  .qr-id { font-size: 11px; color: var(--gray-3); font-family: 'DM Mono', monospace; }
+
+  /* RECORDS */
+  .record-row { padding: 10px 0; border-bottom: 1px solid var(--gray-1); }
+  .record-row:last-child { border-bottom: none; }
+  .record-name { font-size: 14px; font-weight: 500; color: var(--gray-5); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .record-detail { font-size: 12px; color: var(--gray-3); margin-top: 3px; }
+  .tag { display: inline-block; background: var(--amber-light); color: var(--amber); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+
+  /* EMPTY */
+  .empty { text-align: center; padding: 32px 16px; color: var(--gray-3); }
+  .empty svg { width: 40px; height: 40px; stroke: var(--gray-2); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; display: block; margin: 0 auto 10px; }
+  .empty p { font-size: 14px; }
+
+  /* MODAL OVERLAY */
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: flex-end; }
+  .overlay.open { display: flex; }
+  .modal { background: var(--white); border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-height: 90vh; overflow-y: auto; }
+  .modal-handle { width: 36px; height: 4px; background: var(--gray-2); border-radius: 2px; margin: 0 auto 16px; }
+  .modal-title { font-size: 17px; font-weight: 600; margin-bottom: 16px; }
+
+  /* VIDEO QR */
+  #qr-video { width: 100%; border-radius: var(--radius-sm); display: block; margin-bottom: 10px; }
+
+  @media print {
+    .nav, .header, .screen:not(#screen-admin) { display: none !important; }
+    #screen-admin { display: block !important; }
+    .btn, .card:not(.qr-print-card), #form-agregar, #sheets-config-card { display: none !important; }
+    .qr-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    </div>
+    <div>
+      <div class="header-title">Sistema de Cosecha</div>
+      <div class="header-sub" id="header-sub">Registro de jaulas</div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <button class="nav-btn active" onclick="goScreen('jefe')" id="nav-jefe">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Escanear
+    </button>
+    <button class="nav-btn" onclick="goScreen('admin')" id="nav-admin">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Personal
+    </button>
+    <button class="nav-btn" onclick="goScreen('registros')" id="nav-registros">
+      <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Registros
+    </button>
+  </nav>
+
+  <!-- SCREEN JEFE -->
+  <div id="screen-jefe" class="screen active">
+
+    <!-- PASO: ESCANEAR -->
+    <div id="step-scan">
+      <p class="screen-title">Nueva carga</p>
+      <p class="screen-sub">Escaneá el QR del cosechador</p>
+
+      <div class="scan-area" onclick="abrirScanner()">
+        <div class="scan-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="14" y="14" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/></svg>
+        </div>
+        <p>Escanear código QR</p>
+        <span>Apuntá la cámara al carnet del cosechador</span>
+      </div>
+
+      <div class="banner banner-blue">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>Si el escaneo no funciona en tu celular, usá el selector manual abajo</span>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label>Selección manual</label>
+          <select id="manual-picker">
+            <option value="">— elegir cosechador —</option>
+          </select>
+        </div>
+        <button class="btn btn-ghost" onclick="confirmarManual()" style="margin-top:0">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Cargar este cosechador
+        </button>
+      </div>
+    </div>
+
+    <!-- PASO: FORM -->
+    <div id="step-form" style="display:none">
+      <div class="banner banner-green">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span id="banner-worker-name">Cosechador identificado</span>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label>Cantidad de jaulas</label>
+          <input type="number" id="f-jaulas" placeholder="Ej: 12" min="1" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label>Variedad</label>
+          <select id="f-variedad">
+            <option value="">— seleccionar —</option>
+            <option>Royal Dawn</option>
+            <option>Frisco</option>
+            <option>Santina</option>
+            <option>Lapins</option>
+            <option>Sweet Heart</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Cuadro</label>
+          <select id="f-cuadro">
+            <option value="">— seleccionar —</option>
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>6</option>
+            <option>7</option>
+            <option>8</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Observaciones</label>
+          <textarea id="f-obs" placeholder="Opcional..."></textarea>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="guardarCarga()">
+        <svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+        Guardar en Google Sheets
+      </button>
+      <button class="btn btn-ghost" onclick="cancelarForm()">Cancelar</button>
+    </div>
+
+    <!-- PASO: OK -->
+    <div id="step-ok" style="display:none">
+      <div class="success-screen">
+        <div class="success-circle">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h2>¡Carga guardada!</h2>
+        <p id="ok-resumen">Datos enviados correctamente</p>
+        <div id="ok-pills"></div>
+        <button class="btn btn-primary" onclick="nuevaCarga()" style="margin-top:24px">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nueva carga
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN ADMIN -->
+  <div id="screen-admin" class="screen">
+    <p class="screen-title">Personal</p>
+    <p class="screen-sub">Cosechadores y códigos QR</p>
+
+    <!-- CONFIG SHEETS -->
+    <div class="card" id="sheets-config-card">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px">
+        <span style="font-size:14px; font-weight:600">Google Sheets</span>
+        <span id="sheets-status" style="font-size:12px; color:var(--gray-3)">No configurado</span>
+      </div>
+      <div class="field" style="margin-bottom:10px">
+        <label>URL del script</label>
+        <input type="text" id="sheets-url" placeholder="https://script.google.com/..." style="font-size:12px; font-family:'DM Mono',monospace">
+      </div>
+      <div class="field" style="margin-bottom:10px">
+        <label>Nombre de hoja</label>
+        <input type="text" id="sheets-hoja" value="Hoja1">
+      </div>
+      <button class="btn btn-primary" onclick="guardarConfig()" style="margin-top:0">
+        <svg viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Guardar configuración
+      </button>
+    </div>
+
+    <!-- AGREGAR WORKER -->
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px">
+      <span style="font-size:15px; font-weight:600">Cosechadores</span>
+      <button class="btn btn-sm btn-primary" onclick="toggleFormAgregar()">
+        <svg viewBox="0 0 24 24" style="width:14px;height:14px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Agregar
+      </button>
+    </div>
+
+    <div class="card" id="form-agregar" style="display:none; margin-bottom:12px">
+      <div class="field">
+        <label>Nombre completo</label>
+        <input type="text" id="nuevo-nombre" placeholder="Ej: Juan Pérez">
+      </div>
+      <div class="field">
+        <label>Legajo / ID</label>
+        <input type="text" id="nuevo-id" placeholder="Ej: C004" style="font-family:'DM Mono',monospace">
+      </div>
+      <button class="btn btn-primary" onclick="agregarWorker()" style="margin-top:6px">Crear cosechador</button>
+      <button class="btn btn-ghost" onclick="toggleFormAgregar()">Cancelar</button>
+    </div>
+
+    <div class="card" style="padding:4px 16px" id="workers-card">
+      <div id="workers-list"></div>
+    </div>
+
+    <div id="qr-section" style="display:none; margin-top:16px">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px">
+        <span style="font-size:15px; font-weight:600">Códigos QR</span>
+        <button class="btn btn-sm btn-ghost" onclick="window.print()">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Imprimir
+        </button>
+      </div>
+      <div class="qr-grid" id="qr-grid"></div>
+    </div>
+  </div>
+
+  <!-- SCREEN REGISTROS -->
+  <div id="screen-registros" class="screen">
+    <p class="screen-title">Registros</p>
+    <p class="screen-sub">Historial de cargas de esta sesión</p>
+    <div class="card" style="padding: 4px 16px" id="registros-card">
+      <div id="registros-list">
+        <div class="empty">
+          <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <p>Sin registros aún</p>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-ghost" onclick="exportarCSV()">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Exportar CSV
+    </button>
+  </div>
+</div>
+
+<!-- MODAL SCANNER -->
+<div class="overlay" id="scanner-overlay" onclick="cerrarScanner(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <p class="modal-title">Escanear QR</p>
+    <video id="qr-video" autoplay playsinline muted></video>
+    <p id="scan-msg" style="font-size:13px; color:var(--gray-4); text-align:center; margin-bottom:12px">Apuntá la cámara al código QR</p>
+    <button class="btn btn-ghost" onclick="cerrarScanner()">Cancelar</button>
+  </div>
+</div>
+
+<script>
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycby66js0chz3v9GM7714aUl3H5WixpEfZa4wdCdLVk0KX20h_UrpEipKTgUb05qbEQtvCg/exec';
+
+let workers = JSON.parse(localStorage.getItem('cosecha_workers') || '[]');
+let registros = [];
+let workerActual = null;
+let sheetsURL = localStorage.getItem('cosecha_sheets_url') || SHEETS_URL;
+let sheetsHoja = localStorage.getItem('cosecha_sheets_hoja') || 'Hoja1';
+let scanStream = null;
+let scanInterval = null;
+
+// Init
+document.getElementById('sheets-url').value = sheetsURL;
+document.getElementById('sheets-hoja').value = sheetsHoja;
+if (sheetsURL) document.getElementById('sheets-status').textContent = 'Configurado ✓';
+renderAll();
+
+function guardarWorkers() {
+  localStorage.setItem('cosecha_workers', JSON.stringify(workers));
+}
+
+function goScreen(name) {
+  ['jefe','admin','registros'].forEach(s => {
+    document.getElementById('screen-' + s).classList.remove('active');
+    document.getElementById('nav-' + s).classList.remove('active');
+  });
+  document.getElementById('screen-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'registros') renderRegistros();
+  if (name === 'admin') renderQRs();
+  document.getElementById('header-sub').textContent = name === 'jefe' ? 'Registro de jaulas' : name === 'admin' ? 'Gestión de personal' : 'Historial de cargas';
+}
+
+// SCANNER
+async function abrirScanner() {
+  const overlay = document.getElementById('scanner-overlay');
+  overlay.classList.add('open');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    scanStream = stream;
+    const video = document.getElementById('qr-video');
+    video.srcObject = stream;
+    await video.play();
+    scanInterval = setInterval(() => intentarDecodificar(video), 300);
+  } catch(e) {
+    document.getElementById('scan-msg').textContent = 'No se pudo acceder a la cámara. Usá el selector manual.';
+  }
+}
+
+function intentarDecodificar(video) {
+  if (!video.videoWidth) return;
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0);
+  try {
+    // BarcodeDetector API (Chrome Android)
+    if ('BarcodeDetector' in window) {
+      const bd = new BarcodeDetector({ formats: ['qr_code'] });
+      bd.detect(canvas).then(codes => {
+        if (codes.length > 0) procesarQR(codes[0].rawValue);
+      });
+    }
+  } catch(e) {}
+}
+
+function procesarQR(texto) {
+  cerrarScanner();
+  const partes = texto.split('|');
+  const id = partes[0]; const nombre = partes[1] || '';
+  const w = workers.find(w => w.id === id);
+  if (w) {
+    activarWorker(w);
+  } else if (id && nombre) {
+    activarWorker({ id, nombre });
+  } else {
+    alert('QR no reconocido: ' + texto);
+  }
+}
+
+function cerrarScanner(e) {
+  if (e && e.target !== document.getElementById('scanner-overlay')) return;
+  document.getElementById('scanner-overlay').classList.remove('open');
+  if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
+  if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
+}
+
+function confirmarManual() {
+  const sel = document.getElementById('manual-picker');
+  if (!sel.value) { alert('Seleccioná un cosechador'); return; }
+  const w = workers.find(w => w.id === sel.value);
+  if (w) activarWorker(w);
+}
+
+function activarWorker(w) {
+  workerActual = w;
+  document.getElementById('banner-worker-name').textContent = w.nombre + '   ·   ' + w.id;
+  document.getElementById('step-scan').style.display = 'none';
+  document.getElementById('step-form').style.display = 'block';
+  document.getElementById('step-ok').style.display = 'none';
+}
+
+function cancelarForm() {
+  workerActual = null;
+  document.getElementById('step-scan').style.display = 'block';
+  document.getElementById('step-form').style.display = 'none';
+  limpiarForm();
+}
+
+function limpiarForm() {
+  ['f-jaulas','f-variedad','f-cuadro','f-obs'].forEach(id => document.getElementById(id).value = '');
+}
+
+async function guardarCarga() {
+  const jaulas = document.getElementById('f-jaulas').value.trim();
+  const variedad = document.getElementById('f-variedad').value;
+  const cuadro = document.getElementById('f-cuadro').value;
+  const obs = document.getElementById('f-obs').value.trim();
+  if (!jaulas || !variedad || !cuadro) { alert('Completá jaulas, variedad y cuadro'); return; }
+
+  const ahora = new Date();
+  const registro = {
+    fecha: ahora.toLocaleDateString('es-AR'),
+    hora: ahora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
+    id: workerActual.id,
+    nombre: workerActual.nombre,
+    jaulas: parseInt(jaulas),
+    variedad, cuadro, obs,
+    hoja: sheetsHoja
+  };
+  registros.unshift(registro);
+
+  // Enviar a Sheets
+  if (sheetsURL) {
+    try {
+      await fetch(sheetsURL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(registro)
+      });
+    } catch(e) { console.warn('Error al enviar:', e); }
+  }
+
+  // Mostrar ok
+  document.getElementById('step-form').style.display = 'none';
+  document.getElementById('ok-resumen').textContent = workerActual.nombre;
+  document.getElementById('ok-pills').innerHTML =
+    `<span class="pill">${jaulas} jaulas</span><span class="pill">${variedad}</span><span class="pill">Cuadro ${cuadro}</span>${obs ? '<span class="pill">' + obs + '</span>' : ''}`;
+  document.getElementById('step-ok').style.display = 'block';
+  limpiarForm();
+}
+
+function nuevaCarga() {
+  workerActual = null;
+  document.getElementById('step-ok').style.display = 'none';
+  document.getElementById('step-scan').style.display = 'block';
+}
+
+// ADMIN
+function toggleFormAgregar() {
+  const f = document.getElementById('form-agregar');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+function agregarWorker() {
+  const nombre = document.getElementById('nuevo-nombre').value.trim();
+  const id = document.getElementById('nuevo-id').value.trim();
+  if (!nombre || !id) { alert('Completá nombre e ID'); return; }
+  if (workers.find(w => w.id === id)) { alert('Ya existe ese ID'); return; }
+  workers.push({ id, nombre });
+  guardarWorkers();
+  toggleFormAgregar();
+  document.getElementById('nuevo-nombre').value = '';
+  document.getElementById('nuevo-id').value = '';
+  renderAll();
+}
+
+function eliminarWorker(id) {
+  if (!confirm('¿Eliminar este cosechador?')) return;
+  workers = workers.filter(w => w.id !== id);
+  guardarWorkers();
+  renderAll();
+}
+
+function renderAll() {
+  renderWorkersList();
+  renderQRs();
+  renderManualPicker();
+}
+
+function renderWorkersList() {
+  const el = document.getElementById('workers-list');
+  if (!workers.length) {
+    el.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><p>Sin cosechadores. Agregá uno arriba.</p></div>';
+    return;
+  }
+  el.innerHTML = workers.map(w => `
+    <div class="worker-row">
+      <div class="avatar">${iniciales(w.nombre)}</div>
+      <div class="worker-info">
+        <div class="worker-name">${w.nombre}</div>
+        <div class="worker-id">${w.id}</div>
+      </div>
+      <button class="icon-btn" onclick="eliminarWorker('${w.id}')" aria-label="Eliminar">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+      </button>
+    </div>`).join('');
+}
+
+function renderQRs() {
+  const sec = document.getElementById('qr-section');
+  const grid = document.getElementById('qr-grid');
+  if (!workers.length) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  grid.innerHTML = '';
+  workers.forEach(w => {
+    const div = document.createElement('div');
+    div.className = 'qr-card';
+    div.id = 'qrc-' + w.id;
+    div.innerHTML = `<div id="qr-${w.id.replace(/\W/g,'_')}"></div><div class="qr-name">${w.nombre}</div><div class="qr-id">${w.id}</div>`;
+    grid.appendChild(div);
+    setTimeout(() => {
+      const container = document.getElementById('qr-' + w.id.replace(/\W/g,'_'));
+      if (container && typeof QRCode !== 'undefined') {
+        new QRCode(container, { text: w.id + '|' + w.nombre, width: 130, height: 130, correctLevel: QRCode.CorrectLevel.M });
+      }
+    }, 100);
+  });
+}
+
+function renderManualPicker() {
+  const sel = document.getElementById('manual-picker');
+  sel.innerHTML = '<option value="">— elegir cosechador —</option>' +
+    workers.map(w => `<option value="${w.id}">${w.nombre} (${w.id})</option>`).join('');
+}
+
+function renderRegistros() {
+  const el = document.getElementById('registros-list');
+  if (!registros.length) {
+    el.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><p>Sin registros aún</p></div>';
+    return;
+  }
+  el.innerHTML = registros.map(r => `
+    <div class="record-row">
+      <div class="record-name">${r.nombre} <span class="tag">${r.variedad}</span></div>
+      <div class="record-detail">${r.jaulas} jaulas · Cuadro ${r.cuadro} · ${r.fecha} ${r.hora}${r.obs ? ' · ' + r.obs : ''}</div>
+    </div>`).join('');
+}
+
+function guardarConfig() {
+  sheetsURL = document.getElementById('sheets-url').value.trim();
+  sheetsHoja = document.getElementById('sheets-hoja').value.trim() || 'Hoja1';
+  localStorage.setItem('cosecha_sheets_url', sheetsURL);
+  localStorage.setItem('cosecha_sheets_hoja', sheetsHoja);
+  document.getElementById('sheets-status').textContent = sheetsURL ? 'Configurado ✓' : 'No configurado';
+  alert('Configuración guardada');
+}
+
+function exportarCSV() {
+  if (!registros.length) { alert('Sin registros para exportar'); return; }
+  const rows = [['Fecha','Hora','ID','Nombre','Jaulas','Variedad','Cuadro','Observaciones'],
+    ...registros.map(r => [r.fecha, r.hora, r.id, r.nombre, r.jaulas, r.variedad, r.cuadro, r.obs || ''])];
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = 'cosecha_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+
+function iniciales(nombre) {
+  return nombre.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase();
+}
+</script>
+</body>
+</html>
