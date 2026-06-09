@@ -247,10 +247,80 @@
   #qr-video { width: 100%; border-radius: var(--radius-sm); display: block; margin-bottom: 10px; }
 
   @media print {
-    .nav, .header, .screen:not(#screen-admin) { display: none !important; }
-    #screen-admin { display: block !important; }
-    .btn, .card:not(.qr-print-card), #form-agregar, #sheets-config-card { display: none !important; }
-    .qr-grid { grid-template-columns: repeat(3, 1fr); }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    body { background: white !important; }
+    .nav, .header, .screen, .btn, #form-agregar, #sheets-config-card, #qr-section > div:first-child { display: none !important; }
+    #print-carnets { display: block !important; }
+  }
+
+  /* CARNETS PARA IMPRIMIR */
+  #print-carnets {
+    display: none;
+  }
+  .carnets-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 10cm);
+    gap: 0.5cm;
+    padding: 0.5cm;
+  }
+  .carnet {
+    width: 10cm;
+    height: 15cm;
+    border: 2px solid #1a7a4a;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4cm;
+    padding: 0.6cm;
+    page-break-inside: avoid;
+    background: white;
+  }
+  .carnet-header {
+    background: #1a7a4a;
+    color: white;
+    width: 100%;
+    text-align: center;
+    padding: 0.25cm 0;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13pt;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .carnet-qr {
+    width: 7cm;
+    height: 7cm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .carnet-qr canvas, .carnet-qr img {
+    width: 7cm !important;
+    height: 7cm !important;
+  }
+  .carnet-nombre {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16pt;
+    font-weight: 700;
+    color: #1a7a4a;
+    text-align: center;
+    line-height: 1.2;
+  }
+  .carnet-id {
+    font-family: 'DM Mono', monospace;
+    font-size: 11pt;
+    color: #6b6560;
+    background: #f0ede8;
+    padding: 4px 14px;
+    border-radius: 999px;
+  }
+  .carnet-footer {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 9pt;
+    color: #b0aa9f;
+    text-align: center;
   }
 </style>
 </head>
@@ -438,9 +508,9 @@
     <div id="qr-section" style="display:none; margin-top:16px">
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px">
         <span style="font-size:15px; font-weight:600">Códigos QR</span>
-        <button class="btn btn-sm btn-ghost" onclick="window.print()">
+        <button class="btn btn-sm btn-ghost" onclick="imprimirCarnets()">
           <svg viewBox="0 0 24 24" style="width:14px;height:14px"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-          Imprimir
+          Imprimir carnets
         </button>
       </div>
       <div class="qr-grid" id="qr-grid"></div>
@@ -468,6 +538,11 @@
       Limpiar historial local
     </button>
   </div>
+</div>
+
+<!-- CARNETS PARA IMPRIMIR (solo visibles al imprimir) -->
+<div id="print-carnets">
+  <div class="carnets-grid" id="carnets-grid"></div>
 </div>
 
 <!-- MODAL EDITAR -->
@@ -884,6 +959,35 @@ function exportarCSV() {
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
   a.download = 'cosecha_' + new Date().toISOString().slice(0,10) + '.csv';
   a.click();
+}
+
+function imprimirCarnets() {
+  const grid = document.getElementById('carnets-grid');
+  grid.innerHTML = '';
+  workers.forEach(w => {
+    const div = document.createElement('div');
+    div.className = 'carnet';
+    div.innerHTML = `
+      <div class="carnet-header">🍒 COSECHA</div>
+      <div class="carnet-qr" id="print-qr-${w.id.replace(/\W/g,'_')}"></div>
+      <div class="carnet-nombre">${w.nombre}</div>
+      <div class="carnet-id">${w.id}</div>
+      <div class="carnet-footer">Escaneá para registrar tu cosecha</div>
+    `;
+    grid.appendChild(div);
+    setTimeout(() => {
+      const container = document.getElementById('print-qr-' + w.id.replace(/\W/g,'_'));
+      if (container && typeof QRCode !== 'undefined') {
+        new QRCode(container, {
+          text: w.id + '|' + w.nombre,
+          width: 265,
+          height: 265,
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      }
+    }, 100);
+  });
+  setTimeout(() => window.print(), 400);
 }
 
 function limpiarHistorial() {
